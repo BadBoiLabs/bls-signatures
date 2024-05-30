@@ -263,6 +263,20 @@ fn key_gen<T: AsRef<[u8]>>(data: T) -> Scalar {
     out.try_into().expect("invalid key generated")
 }
 
+/// Aggregate signatures by multiplying them together.
+/// Calculated by `signature = \sum_{i = 0}^n signature_i`.
+pub fn aggregate(keys: &[PublicKey]) -> Result<PublicKey, Error> {
+    if keys.is_empty() {
+        return Err(Error::ZeroSizedInput);
+    }
+
+    let res = keys
+        .iter()
+        .fold(G1Projective::identity(), |acc, key| acc + key.0);
+
+    Ok(PublicKey(res.into()))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
